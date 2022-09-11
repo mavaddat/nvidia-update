@@ -29,11 +29,9 @@ Checks for a new version of the Nvidia Driver, downloads and installs it.
 
 You can use `SchTasks` to run the script automatically with:
 
-```ps
-$path = "C:"
-New-Item -ItemType Directory -Force -Path $path | Out-Null
-Invoke-WebRequest -Uri "https://github.com/lord-carlos/nvidia-update/raw/master/nvidia.ps1" -OutFile "$path\nvidia.ps1" -UseBasicParsing
-SchTasks /Create /SC DAILY /TN "Nvidia-Updater" /TR "powershell -NoProfile -ExecutionPolicy Bypass -File $path\nvidia.ps1" /ST 10:00
+```pwsh
+Invoke-WebRequest -Uri "https://github.com/lord-carlos/nvidia-update/raw/master/nvidia.ps1" -OutFile "${env:HOMEPATH}\nvidia.ps1" -UseBasicParsing
+SchTasks /Create /SC DAILY /TN "Nvidia-Updater" /TR "powershell -NoProfile -ExecutionPolicy Bypass -File ${env:HOMEPATH}\nvidia.ps1" /ST 10:00
 schtasks /run /tn "Nvidia-Updater"
 ```
 
