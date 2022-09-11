@@ -7,7 +7,7 @@
 # Installer options
 param (
     [switch]$clean = $false, # Will delete old drivers and install the new ones
-    [string]$folder = "$env:temp"   # Downloads and extracts the driver here
+    [string]$folder = "$env:TEMP"   # Downloads and extracts the driver here
 )
 
 
@@ -38,20 +38,21 @@ elseif ($7zipinstalled -eq $false) {
     }
 }
 else {
-    Write-Host "Sorry, but it looks like you don't have a supported archiver."
-    Write-Host ""
-    while ($choice -notmatch "[y|n]") {
-        $choice = read-host "Would you like to install 7-Zip now? (Y/N)"
-    }
-    if ($choice -eq "y") {
+    $choices = @('&Yes','&No')
+    $choice = $Host.UI.PromptForChoice("Sorry, but it looks like you don't have a supported archiver.",'Would you like to install 7-Zip now?',$choices,$choices.IndexOf('&Yes'))
+    if ($choice -eq $choices.IndexOf('&Yes')) {
         # Download and silently install 7-zip if the user presses y
-        $7zip = "https://www.7-zip.org/a/7z1900-x64.exe"
-        $output = "$PSScriptRoot\7Zip.exe"
-        (New-Object System.Net.WebClient).DownloadFile($7zip, $output)
-       
-        Start-Process "7Zip.exe" -Wait -ArgumentList "/S"
-        # Delete the installer once it completes
-        Remove-Item "$PSScriptRoot\7Zip.exe"
+        if(Get-Command winget -CommandType Application -ErrorAction SilentlyContinue){
+            winget install --id '7zip.7zip' --silent
+        } else {
+            $7zip = "https://www.7-zip.org/a/7z1900-x64.exe"
+            $output = "$PSScriptRoot\7Zip.exe"
+            (New-Object System.Net.WebClient).DownloadFile($7zip, $output)
+
+            Start-Process "7Zip.exe" -Wait -ArgumentList "/S"
+            # Delete the installer once it completes
+            Remove-Item "$PSScriptRoot\7Zip.exe"
+        }
     }
     else {
         Write-Host "Press any key to exit..."
@@ -59,8 +60,6 @@ else {
         exit
     }
 }
-   
-
 
 # Checking currently installed driver version
 Write-Host "Attempting to detect currently installed driver version..."
@@ -71,7 +70,7 @@ try {
 catch {
     Write-Host -ForegroundColor Yellow "Unable to detect a compatible Nvidia device."
     Write-Host "Press any key to exit..."
-    $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") | Out-Null
     exit
 }
 Write-Host "Installed version `t$ins_version"
